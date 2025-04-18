@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Engagement SDK Test</title>
+  <script src="sdk.js"></script> 
+  <script src="load.js"></script>
+</head>
+<body>
+
+  <h1>Engagement SDK Test Page</h1>
+
+  <!-- Button to track click events -->
+  <button id="testButton">Click Me</button>
+
+  <!-- Form to track submission events -->
+  <form id="contactForm" name="contactForm">
+    <input type="text" id="username" name="username" placeholder="Enter Username">
+    <button type="submit">Submit Form</button>
+  </form>
+
+  <h2>Scroll to trigger scroll event</h2>
+  <div style="height: 1000px;"></div>
+
+  <h2>Simulate Error</h2>
+  <button onclick="simulateError()">Simulate Error</button>
+
+  <script>
+    function simulateError() {
+      nonExistentFunction(); // This will throw a reference error
+    }
+
+    // You can test your SDK by interacting with the page:
+    // 1. Click the button
+    // 2. Type in the input field
+    // 3. Submit the form
+    // 4. Scroll the page
+    // 5. Simulate an error by clicking the "Simulate Error" button
+  </script>
+</body>
+</html>

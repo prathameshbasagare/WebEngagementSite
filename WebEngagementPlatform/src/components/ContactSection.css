@@ -1,0 +1,106 @@
+.contact-section {
+    display: flex;
+    justify-content: space-between;
+    /* padding: 20px; */
+  }
+  
+  .left-side, .right-side {
+    flex: 1;  /* Make both sections take equal space */
+    padding: 80px;
+  }
+  
+  .left-side {
+    background-color: #F2FAFB;  /* Light gray background */
+    /* padding: 60px 80px 80px 90px; */
+  }
+  
+  .right-side {
+    background-color: #BCCACC;  /* Light blue background */
+    border-left: 2px solid #ccc;  /* Optional: border to divide the sections */
+  }
+  
+  h1 {
+    font-size: 32px;
+    color: #333;
+  }
+  
+  h2 {
+    font-size: 28px;
+    color: #333;
+  }
+  
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+  
+  ul li {
+    margin-bottom: 10px;
+    color: #555;
+  }
+  
+  form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+
+  /* .form-checkbox{
+    display: flex;
+  align-items: center; 
+  justify-content: center;
+  } */
+
+  /* .form-checkbox input[type="checkbox"] { */
+    /* margin-right: 10px; Adds space between checkbox and text */
+  /* } */
+  
+  input, select {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+  }
+  
+  button {
+    background-color: #0056b3;
+    color: white;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  button:hover {
+    background-color: #003d80;
+  }
+  
+  .left-side ul {
+  display: block;  /* Make sure the list items are block-level */
+  max-width: 300px;  /* Control the max width for wrapping */
+}
+
+.left-side ul li {
+  word-wrap: break-word;  /* Allows wrapping of long words */
+  margin-bottom: 10px;  /* Space between items */
+}
+
+.list {
+    /* padding: ; */
+    line-height: 1.7;
+    margin-top: 35px;
+}
+
+/* .list li{
+    display: flex;
+    align-items: center;
+} */
+
+.list li svg {
+    margin-right: 10px; /* Adjust this value as needed */
+  }
+

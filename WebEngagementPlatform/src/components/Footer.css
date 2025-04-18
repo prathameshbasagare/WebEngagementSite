@@ -1,0 +1,137 @@
+.footer {
+    background-color: #001447; /* Dark background */
+    color: #fff; /* White text */
+    padding: 40px 20px;
+  }
+  
+  .footer-content {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); /* 4 columns */
+    gap: 30px;
+    margin-bottom: 40px;
+    /* color: #ffffff; */
+    margin-left: 50px;
+  }
+  
+  .footer-column h3 {
+    margin-bottom: 40px;
+    font-size: 18px;
+
+  }
+  
+  .footer-column ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .footer-column ul li {
+    margin-bottom: 30px;
+    color: #E9EBEF;
+    cursor: pointer;
+  }
+  
+  .footer-column ul li a {
+    text-decoration: none;
+    color: #D6D9E1;
+  }
+  
+  .footer-column ul li a:hover {
+    color: #0f9d58;
+  }
+  
+  .footer-about {
+    margin-bottom: 40px;
+  }
+  
+  .footer-about p {
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  
+  .footer-bottom {
+    /* display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #1e3d58;
+    padding-top: 20px; */
+    background-color: #001447; /* Dark background */
+  color: #fff; /* White text */
+  /* padding: 40px 20px;     */
+
+  }
+  
+  /* .social-icons a {
+    margin-right: 20px;
+    font-size: 24px;
+    color: #fff;
+  }
+  
+  .social-icons a:hover {
+    color: #0f9d58;
+  }
+  
+  .footer-links a {
+    margin-right: 20px;
+    text-decoration: none;
+    color: #fff;
+  }
+  
+  .footer-links a:hover {
+    color: #0f9d58;
+  }
+   */
+  .footer-content2 {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+
+.footer-left {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    font-size: 1.2rem;
+  }
+  
+  .footer-left p {
+    margin-top: -10px;
+    /* font-weight: lighter; */
+  }
+  
+  .footer-right {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+  }
+  
+  .social-icons {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+  
+  .social-icons a {
+    margin-right: 20px;
+    font-size: 24px;
+    color: #fff;
+  }
+  
+  .social-icons a:hover {
+    color: #0f9d58;
+  }
+  
+  .footer-links a {
+    margin-right: 20px;
+    text-decoration: none;
+    color: #fff;
+    display: block;
+  }
+  
+  .footer-links a:hover {
+    color: #0f9d58;
+  }
+  .footer-links {
+    display: flex;
+    justify-content: flex-end; /* Align links to the right */
+  }

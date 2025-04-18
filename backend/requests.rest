@@ -1,0 +1,17 @@
+### Test the signup endpoint
+# POST http://localhost:3000/signup
+# Content-Type: application/json
+
+# {
+#   "companyname": "MyCompany",
+#   "email": "hello@example.com",
+#   "password": "Password@123"
+# }
+
+POST http://localhost:3000/signin
+Content-Type: application/json
+
+{
+    "email":"hello@example.com",
+    "password":"Password@123"
+}
