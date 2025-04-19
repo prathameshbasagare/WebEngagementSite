@@ -1,22 +1,29 @@
 window.onload = () => {
-  //Here we will add user id for perticular user
-    const sdk = new EngagementSDK("highcarbs");
+    // Example config for EngagementSDK
+    const sdk = new EngagementSDK({
+        companyID: "highcarbs",
+        endpoint: "http://43.204.214.1:3000/track-event",
+        selectors: {
+            button: "#testButton",
+            form: "#contactForm",
+            input: "#username"
+        },
+        events: {
+            pageView: true,
+            buttonClick: true,
+            formSubmission: true,
+            inputChange: true,
+            scroll: true,
+            jsError: true
+        },
+        maxBatchSize: 5,
+        flushInterval: 3000
+    });
 
-    // Track page view when the page loads
     sdk.trackPageView();
-
-    // Track button click event
-    sdk.trackButtonClicks("testButton");
-
-    // Track form submission event
-    sdk.trackFormSubmissions("contactForm");
-
-    // Track input change event
-    sdk.trackInputChanges("username");
-
-    // Track scroll event
+    sdk.trackButtonClicks();
+    sdk.trackFormSubmissions();
+    sdk.trackInputChanges();
     sdk.trackScroll();
-
-    // Track errors in JavaScript
     sdk.trackErrors();
-  };
+};

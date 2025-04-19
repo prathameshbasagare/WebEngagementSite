@@ -1,22 +1,27 @@
 window.onload = () => {
-  //Here we will add user id for perticular user
-    const sdk = new EngagementSDK("abcd");
+    // Example config for EngagementSDK
+    const sdk = new EngagementSDK({
+        companyID: "abcd",
+        endpoint: "http://localhost:3001/track-event",
+        selectors: {
+            button: "#testButton",
+            form: "#contactForm",
+            input: "#username"
+        },
+        events: {
+            pageView: true,
+            buttonClick: true,
+            formSubmission: true,
+            inputChange: true,
+            scroll: true,
+            jsError: true
+        }
+    });
 
-    // Track page view when the page loads
     sdk.trackPageView();
-
-    // Track button click event
-    sdk.trackButtonClicks("testButton");
-
-    // Track form submission event
-    sdk.trackFormSubmissions("contactForm");
-
-    // Track input change event
-    sdk.trackInputChanges("username");
-
-    // Track scroll event
+    sdk.trackButtonClicks();
+    sdk.trackFormSubmissions();
+    sdk.trackInputChanges();
     sdk.trackScroll();
-
-    // Track errors in JavaScript
     sdk.trackErrors();
-  };
+};

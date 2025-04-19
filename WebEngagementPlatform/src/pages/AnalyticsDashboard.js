@@ -14,7 +14,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  ArcElement,
+  ArcElement
 } from "chart.js";
 
 ChartJS.register(
@@ -83,26 +83,28 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
     );
   }
 
-  const labels = analyticsData.map((item) =>
-    new Date(item.timestamp).toLocaleTimeString()
-  );
+  // Sort analyticsData by timestamp ascending for consistent time order
+  const sortedAnalyticsData = [...analyticsData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  // Use original analyticsData, labels, and lineOptions
+  const labels = analyticsData.map((item) => new Date(item.timestamp).toLocaleTimeString());
   const counters = analyticsData.map((item) => item.counter);
 
-  const actionTypes = analyticsData.map((item) => item.actionType);
+  const actionTypes = sortedAnalyticsData.map((item) => item.actionType);
   
-  const actionTypeCounts = analyticsData.reduce((acc, item) => {
+  const actionTypeCounts = sortedAnalyticsData.reduce((acc, item) => {
     const action = item.actionType.toLowerCase(); // Normalize action type (optional)
     acc[action] = (acc[action] || 0) + item.counter; // Sum up counters for each action type
     return acc;
   }, {});
   
 
-  const totalActions = analyticsData.reduce((sum, item) => sum + item.counter, 0);
-  const totalClicks = analyticsData
+  const totalActions = sortedAnalyticsData.reduce((sum, item) => sum + item.counter, 0);
+  const totalClicks = sortedAnalyticsData
     .filter((item) => item.actionType === "button_click")
     .reduce((sum, item) => sum + item.counter, 0);
-  const buttons = new Set(analyticsData.map((item) => item.actionType)).size;
-  const totalScrolls = analyticsData
+  const buttons = new Set(sortedAnalyticsData.map((item) => item.actionType)).size;
+  const totalScrolls = sortedAnalyticsData
   .filter((item) => item.actionType === "scroll")
   .reduce((sum, item) => sum + item.counter, 0);
 
@@ -112,16 +114,27 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
       {
         label: "Action Type Distribution",
         data: Object.values(actionTypeCounts),
-        backgroundColor: randomColor({
-          count: Object.keys(actionTypeCounts).length,
-          hue: "random",
-          luminosity: "light",
-        }),
-        borderColor: randomColor({
-          count: Object.keys(actionTypeCounts).length,
-          hue: "random",
-          luminosity: "dark",
-        }),
+        backgroundColor: [
+          // Use a fixed color palette to disable color changing
+          "#4caf50", // green
+          "#2196f3", // blue
+          "#ff9800", // orange
+          "#e91e63", // pink
+          "#9c27b0", // purple
+          "#607d8b", // blue grey
+          "#ffc107", // amber
+          "#f44336", // red
+        ],
+        borderColor: [
+          "#388e3c",
+          "#1976d2",
+          "#f57c00",
+          "#ad1457",
+          "#6a1b9a",
+          "#455a64",
+          "#ffa000",
+          "#d32f2f",
+        ],
         borderWidth: 1,
       },
     ],
@@ -133,7 +146,7 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
       {
         label: "Button Clicks by Action Type",
         data: Object.keys(actionTypeCounts).map((actionType) => {
-          return analyticsData
+          return sortedAnalyticsData
             .filter((item) => item.actionType === actionType)
             .reduce((sum, item) => sum + item.counter, 0);
         }),
@@ -154,6 +167,58 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
         fill: false,
       },
     ],
+  };
+
+  // Chart options for professional display and dynamic scaling
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'top' },
+      title: { display: true, text: 'Action Count Over Time', font: { size: 20 } },
+      tooltip: { enabled: true, mode: 'index', intersect: false }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Time', font: { size: 16 } },
+        ticks: { autoSkip: true, maxTicksLimit: 20 }
+      },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Count', font: { size: 16 } },
+        ticks: { stepSize: 1 }
+      }
+    }
+  };
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'top' },
+      title: { display: true, text: 'Button Clicks by Action Type', font: { size: 20 } },
+      tooltip: { enabled: true }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Action Type', font: { size: 16 } }
+      },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Clicks', font: { size: 16 } },
+        ticks: { stepSize: 1 }
+      }
+    }
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'right', labels: { font: { size: 14 } } },
+      title: { display: true, text: 'Action Type Distribution', font: { size: 20 } },
+      tooltip: { enabled: true }
+    }
   };
 
   const chartStyle = {
@@ -212,7 +277,7 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
           <h1>Action Count Over Time</h1>
           <Line
             data={lineData}
-            options={{ responsive: true, maintainAspectRatio: false }}
+            options={lineOptions}
           />
         </div>
 
@@ -221,7 +286,7 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
           <h1>Button Clicks by Action Type</h1>
           <Bar
             data={barData}
-            options={{ responsive: true, maintainAspectRatio: false }}
+            options={barOptions}
           />
         </div>
       </div>
@@ -231,7 +296,7 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
         <h1>Action Type Distribution</h1>
         <Pie style={{ paddingBottom: "20px" }}
           data={pieData}
-          options={{ responsive: true, maintainAspectRatio: false }}
+          options={pieOptions}
         />
       </div>
 
