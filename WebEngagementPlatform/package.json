@@ -12,6 +12,8 @@
     "@testing-library/user-event": "^13.5.0",
     "axios": "^1.7.7",
     "chart.js": "^4.4.6",
+    "chartjs-adapter-date-fns": "^3.0.0",
+    "date-fns": "^4.1.0",
     "flowbite": "^2.5.2",
     "flowbite-react": "^0.10.2",
     "metro-react-native-babel-preset": "^0.69.0",

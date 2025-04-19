@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Line, Bar, Pie } from "react-chartjs-2";
 import randomColor from "randomcolor";
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -13,7 +14,7 @@ import {
   Title,
   Tooltip,
   Legend,
-  ArcElement,
+  ArcElement
 } from "chart.js";
 
 ChartJS.register(
@@ -28,33 +29,67 @@ ChartJS.register(
   ArcElement
 );
 
-const AnalyticsDashboard = () => {
-  const [analyticsData, setAnalyticsData] = useState([]);
+const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const [analyticsData, setAnalyticsData] = useState(analyticsDataProp || []);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch analytics if empty (e.g. on direct reload)
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      navigate("/login");
-      return;
+    if ((!analyticsDataProp || analyticsDataProp.length === 0) && user) {
+      setLoading(true);
+      fetch(`http://localhost:3001/analytics?userId=${user.companyname}`)
+        .then(res => res.json())
+        .then(data => {
+          setAnalyticsData(data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setAnalyticsData([]);
+          setLoading(false);
+        });
+    } else if (analyticsDataProp && analyticsDataProp.length > 0) {
+      setAnalyticsData(analyticsDataProp);
     }
+  }, [analyticsDataProp, user]);
 
-    // Retrieve analytics data from localStorage
-    const storedData = localStorage.getItem("analyticsData");
-    if (storedData) {
-      const parsedData = JSON.parse(storedData);
-      setAnalyticsData(parsedData);
-    } else {
-      // If no data, populate with mock data and save to localStorage
-      const mockData = [
-        { timestamp: Date.now(), counter: 10, actionType: "click" },
-        { timestamp: Date.now() + 1000, counter: 15, actionType: "view" },
-        { timestamp: Date.now() + 2000, counter: 5, actionType: "submit" },
-      ];
-      localStorage.setItem("analyticsData", JSON.stringify(mockData));
-      setAnalyticsData(mockData);
-    }
-  }, [navigate]);
+  // Poll for updates every 5 seconds for live updates
+  useEffect(() => {
+    if (!user) return;
+    const fetchAnalytics = () => {
+      fetch(`http://localhost:3001/analytics?userId=${user.companyname}`)
+        .then(res => res.json())
+        .then(data => setAnalyticsData(data))
+        .catch(() => setAnalyticsData([]));
+    };
+    const interval = setInterval(fetchAnalytics, 5000); // 5 seconds
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Add manual refresh button
+  const handleRefresh = () => {
+    if (!user) return;
+    setLoading(true);
+    fetch(`http://localhost:3001/analytics?userId=${user.companyname}`)
+      .then(res => res.json())
+      .then(data => {
+        setAnalyticsData(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setAnalyticsData([]);
+        setLoading(false);
+      });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center bg-green-500 ">
+        <p className="text-4xl">Loading analytics...</p>
+      </div>
+    );
+  }
 
   if (!analyticsData || analyticsData.length === 0) {
     return (
@@ -64,26 +99,28 @@ const AnalyticsDashboard = () => {
     );
   }
 
-  const labels = analyticsData.map((item) =>
-    new Date(item.timestamp).toLocaleTimeString()
-  );
+  // Sort analyticsData by timestamp ascending for consistent time order
+  const sortedAnalyticsData = [...analyticsData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+  // Use original analyticsData, labels, and lineOptions
+  const labels = analyticsData.map((item) => new Date(item.timestamp).toLocaleTimeString());
   const counters = analyticsData.map((item) => item.counter);
 
-  const actionTypes = analyticsData.map((item) => item.actionType);
+  const actionTypes = sortedAnalyticsData.map((item) => item.actionType);
   
-  const actionTypeCounts = analyticsData.reduce((acc, item) => {
+  const actionTypeCounts = sortedAnalyticsData.reduce((acc, item) => {
     const action = item.actionType.toLowerCase(); // Normalize action type (optional)
     acc[action] = (acc[action] || 0) + item.counter; // Sum up counters for each action type
     return acc;
   }, {});
   
 
-  const totalActions = analyticsData.reduce((sum, item) => sum + item.counter, 0);
-  const totalClicks = analyticsData
+  const totalActions = sortedAnalyticsData.reduce((sum, item) => sum + item.counter, 0);
+  const totalClicks = sortedAnalyticsData
     .filter((item) => item.actionType === "button_click")
     .reduce((sum, item) => sum + item.counter, 0);
-  const buttons = new Set(analyticsData.map((item) => item.actionType)).size;
-  const totalScrolls = analyticsData
+  const buttons = new Set(sortedAnalyticsData.map((item) => item.actionType)).size;
+  const totalScrolls = sortedAnalyticsData
   .filter((item) => item.actionType === "scroll")
   .reduce((sum, item) => sum + item.counter, 0);
 
@@ -93,16 +130,27 @@ const AnalyticsDashboard = () => {
       {
         label: "Action Type Distribution",
         data: Object.values(actionTypeCounts),
-        backgroundColor: randomColor({
-          count: Object.keys(actionTypeCounts).length,
-          hue: "random",
-          luminosity: "light",
-        }),
-        borderColor: randomColor({
-          count: Object.keys(actionTypeCounts).length,
-          hue: "random",
-          luminosity: "dark",
-        }),
+        backgroundColor: [
+          // Use a fixed color palette to disable color changing
+          "#4caf50", // green
+          "#2196f3", // blue
+          "#ff9800", // orange
+          "#e91e63", // pink
+          "#9c27b0", // purple
+          "#607d8b", // blue grey
+          "#ffc107", // amber
+          "#f44336", // red
+        ],
+        borderColor: [
+          "#388e3c",
+          "#1976d2",
+          "#f57c00",
+          "#ad1457",
+          "#6a1b9a",
+          "#455a64",
+          "#ffa000",
+          "#d32f2f",
+        ],
         borderWidth: 1,
       },
     ],
@@ -114,7 +162,7 @@ const AnalyticsDashboard = () => {
       {
         label: "Button Clicks by Action Type",
         data: Object.keys(actionTypeCounts).map((actionType) => {
-          return analyticsData
+          return sortedAnalyticsData
             .filter((item) => item.actionType === actionType)
             .reduce((sum, item) => sum + item.counter, 0);
         }),
@@ -137,6 +185,58 @@ const AnalyticsDashboard = () => {
     ],
   };
 
+  // Chart options for professional display and dynamic scaling
+  const lineOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'top' },
+      title: { display: true, text: 'Action Count Over Time', font: { size: 20 } },
+      tooltip: { enabled: true, mode: 'index', intersect: false }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Time', font: { size: 16 } },
+        ticks: { autoSkip: true, maxTicksLimit: 20 }
+      },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Count', font: { size: 16 } },
+        ticks: { stepSize: 1 }
+      }
+    }
+  };
+
+  const barOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'top' },
+      title: { display: true, text: 'Button Clicks by Action Type', font: { size: 20 } },
+      tooltip: { enabled: true }
+    },
+    scales: {
+      x: {
+        title: { display: true, text: 'Action Type', font: { size: 16 } }
+      },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Clicks', font: { size: 16 } },
+        ticks: { stepSize: 1 }
+      }
+    }
+  };
+
+  const pieOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: true, position: 'right', labels: { font: { size: 14 } } },
+      title: { display: true, text: 'Action Type Distribution', font: { size: 20 } },
+      tooltip: { enabled: true }
+    }
+  };
+
   const chartStyle = {
     boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
     border: "1px solid #e0e0e0",
@@ -157,14 +257,7 @@ const AnalyticsDashboard = () => {
   };
 
   return (
-    <div
-      // style={{
-      //   width: "90%",
-      //   maxWidth: "1200px",
-      //   margin: "0 auto",
-      //   padding: "20px 20px 20px 20px",
-      // }}
-    >
+    <div>
       <h1
         style={{
           backgroundColor: "lightgreen",
@@ -185,7 +278,11 @@ const AnalyticsDashboard = () => {
         Analytics Dashboard
         <Link  to="/dashboard" style={{marginLeft:"900px", fontSize:"20px"}}>Back</Link>
       </h1>
-      
+      <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0' }}>
+        <button onClick={handleRefresh} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+          Refresh Analytics
+        </button>
+      </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: "20px" }}>
         {/* Line Chart */}
@@ -193,7 +290,7 @@ const AnalyticsDashboard = () => {
           <h1>Action Count Over Time</h1>
           <Line
             data={lineData}
-            options={{ responsive: true, maintainAspectRatio: false }}
+            options={lineOptions}
           />
         </div>
 
@@ -202,7 +299,7 @@ const AnalyticsDashboard = () => {
           <h1>Button Clicks by Action Type</h1>
           <Bar
             data={barData}
-            options={{ responsive: true, maintainAspectRatio: false }}
+            options={barOptions}
           />
         </div>
       </div>
@@ -212,7 +309,7 @@ const AnalyticsDashboard = () => {
         <h1>Action Type Distribution</h1>
         <Pie style={{ paddingBottom: "20px" }}
           data={pieData}
-          options={{ responsive: true, maintainAspectRatio: false }}
+          options={pieOptions}
         />
       </div>
 

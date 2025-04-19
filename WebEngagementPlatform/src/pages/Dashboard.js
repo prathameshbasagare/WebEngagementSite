@@ -1,18 +1,35 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import { AuthContext } from '../context/AuthContext';
 
-const Dashboard = () => {
+const Dashboard = ({ analyticsData, setAnalyticsData }) => {
     const navigate = useNavigate();
+    const { user, loading } = useContext(AuthContext);
 
-    // Check session on component load
     useEffect(() => {
-        const token = localStorage.getItem('authToken'); // Fetch token from localStorage
-        if (!token) {
-            // If no token, redirect to login
+        if (loading) return; // Wait for AuthContext to finish loading
+        if (!user) {
             navigate('/login');
+            return;
         }
-    }, [navigate]);
+        const fetchAnalytics = async () => {
+            try {
+                const res = await fetch(`http://localhost:3001/analytics?userId=${user.companyname}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setAnalyticsData(data);
+                } else {
+                    setAnalyticsData([]);
+                }
+            } catch (err) {
+                setAnalyticsData([]);
+            }
+        };
+        fetchAnalytics();
+        const interval = setInterval(fetchAnalytics, 10000);
+        return () => clearInterval(interval);
+    }, [navigate, setAnalyticsData, user, loading]);
 
     const handleLogout = () => {
         // Clear session data
@@ -28,7 +45,6 @@ const Dashboard = () => {
                 <h1 className='text-white text-bold' style={{fontSize:"25px"}}>Dashboard</h1>
                 <nav>
                     <ul style={styles.navLinks}>
-                        
                         <li><Link to="/settings" className='py-2 px-4 rounded hover:bg-green-700 hover:rounded-full transition' style={styles.link}>Settings</Link></li>
                         <li>
                             <button onClick={handleLogout} style={styles.logoutButton}>
@@ -41,7 +57,8 @@ const Dashboard = () => {
             <main className="bg-white" style={styles.mainContent}>
                 <Routes>
                     <Route path="/" element={<Home />} />
-                    <Route path="/analytics-dashboard" element={<AnalyticsDashboard />} />
+                    {/* Pass analyticsData as prop to AnalyticsDashboard */}
+                    <Route path="/analytics-dashboard" element={<AnalyticsDashboard analyticsData={analyticsData} />} />
                     <Route path="/settings" element={<Settings />} />
                 </Routes>
             </main>
@@ -211,7 +228,7 @@ const Home = () => {
                     Analytics dashboard give you the graphical data which makes the analysis easier
                 </p>
                 <div>
-                    <a href="#" style={{
+                    <a style={{
                         color: "#1e293b",
                         fontWeight: 600,
                         fontSize: "0.875rem",

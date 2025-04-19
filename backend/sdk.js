@@ -1,14 +1,17 @@
 class EngagementSDK {
-    constructor(cID) {
-      this.companyID = cID;
+    constructor(config) {
+        this.companyID = config.companyID;
+        this.endpoint = config.endpoint || 'http://localhost:3001/track-event';
         this.events = [];
+        this.config = config;
     }
-  
+
     trackPageView() {
+        if (this.config?.events?.pageView === false) return;
         const pageViewEvent = {
             actionType: 'page_view',
             companyID: this.companyID,
-            pageUrl: window.location.href, // Include pageUrl
+            pageUrl: window.location.href,
             data: {
                 timestamp: new Date().toISOString(),
             }
@@ -16,14 +19,16 @@ class EngagementSDK {
         this.events.push(pageViewEvent);
         this.sendToBackend(pageViewEvent);
     }
-  
-    trackButtonClicks() {
-        document.querySelectorAll("button").forEach(button => {
+
+    trackButtonClicks(selector) {
+        if (this.config?.events?.buttonClick === false) return;
+        const sel = selector || this.config?.selectors?.button || 'button';
+        document.querySelectorAll(sel).forEach(button => {
             button.addEventListener("click", (event) => {
                 const buttonClickEvent = {
                     actionType: 'button_click',
                     companyID: this.companyID,
-                    pageUrl: window.location.href, // Include pageUrl
+                    pageUrl: window.location.href,
                     data: {
                         buttonText: event.target.innerText,
                         timestamp: new Date().toISOString(),
@@ -34,14 +39,16 @@ class EngagementSDK {
             });
         });
     }
-  
-    trackInputChanges() {
-        document.querySelectorAll("input").forEach(input => {
+
+    trackInputChanges(selector) {
+        if (this.config?.events?.inputChange === false) return;
+        const sel = selector || this.config?.selectors?.input || 'input';
+        document.querySelectorAll(sel).forEach(input => {
             input.addEventListener("input", (event) => {
                 const inputChangeEvent = {
                     actionType: 'input_change',
                     companyID: this.companyID,
-                    pageUrl: window.location.href, // Include pageUrl
+                    pageUrl: window.location.href,
                     data: {
                         inputName: event.target.name,
                         inputValue: event.target.value,
@@ -53,15 +60,17 @@ class EngagementSDK {
             });
         });
     }
-  
-    trackFormSubmissions() {
-        document.querySelectorAll("form").forEach(form => {
+
+    trackFormSubmissions(selector) {
+        if (this.config?.events?.formSubmission === false) return;
+        const sel = selector || this.config?.selectors?.form || 'form';
+        document.querySelectorAll(sel).forEach(form => {
             form.addEventListener("submit", (event) => {
                 event.preventDefault();
                 const formSubmitEvent = {
                     actionType: 'form_submission',
                     companyID: this.companyID,
-                    pageUrl: window.location.href, // Include pageUrl
+                    pageUrl: window.location.href,
                     data: {
                         formName: event.target.name,
                         timestamp: new Date().toISOString(),
@@ -72,17 +81,17 @@ class EngagementSDK {
             });
         });
     }
-  
+
     trackScroll() {
+        if (this.config?.events?.scroll === false) return;
         let debounceTimeout;
         window.addEventListener("scroll", () => {
             if (debounceTimeout) clearTimeout(debounceTimeout);
-  
             debounceTimeout = setTimeout(() => {
                 const scrollEvent = {
                     actionType: 'scroll',
                     companyID: this.companyID,
-                    pageUrl: window.location.href, // Include pageUrl
+                    pageUrl: window.location.href,
                     data: {
                         scrollPosition: window.scrollY,
                         timestamp: new Date().toISOString(),
@@ -93,13 +102,14 @@ class EngagementSDK {
             }, 500);
         });
     }
-  
+
     trackErrors() {
+        if (this.config?.events?.jsError === false) return;
         window.onerror = (message, source, lineno, colno, error) => {
             const errorEvent = {
                 actionType: 'js_error',
                 companyID: this.companyID,
-                pageUrl: window.location.href, // Include pageUrl
+                pageUrl: window.location.href,
                 data: {
                     message,
                     source,
@@ -113,10 +123,9 @@ class EngagementSDK {
             this.sendToBackend(errorEvent);
         };
     }
-    
-  //   65.0.183.75
+
     sendToBackend(eventData) {
-        fetch('http://localhost:3001/track-event', {
+        fetch(this.endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -131,6 +140,6 @@ class EngagementSDK {
             console.error('Error sending event data:', error);
         });
     }
-  }
-  
-  new EngagementSDK();
+}
+
+new EngagementSDK();
