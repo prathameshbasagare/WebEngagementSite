@@ -54,7 +54,7 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
     }
   }, [analyticsDataProp, user]);
 
-  // Poll for updates every 10 seconds for live updates
+  // Poll for updates every 5 seconds for live updates
   useEffect(() => {
     if (!user) return;
     const fetchAnalytics = () => {
@@ -63,9 +63,25 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
         .then(data => setAnalyticsData(data))
         .catch(() => setAnalyticsData([]));
     };
-    const interval = setInterval(fetchAnalytics, 1000);
+    const interval = setInterval(fetchAnalytics, 5000); // 5 seconds
     return () => clearInterval(interval);
   }, [user]);
+
+  // Add manual refresh button
+  const handleRefresh = () => {
+    if (!user) return;
+    setLoading(true);
+    fetch(`http://localhost:3001/analytics?userId=${user.companyname}`)
+      .then(res => res.json())
+      .then(data => {
+        setAnalyticsData(data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setAnalyticsData([]);
+        setLoading(false);
+      });
+  };
 
   if (loading) {
     return (
@@ -241,14 +257,7 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
   };
 
   return (
-    <div
-      // style={{
-      //   width: "90%",
-      //   maxWidth: "1200px",
-      //   margin: "0 auto",
-      //   padding: "20px 20px 20px 20px",
-      // }}
-    >
+    <div>
       <h1
         style={{
           backgroundColor: "lightgreen",
@@ -269,7 +278,11 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
         Analytics Dashboard
         <Link  to="/dashboard" style={{marginLeft:"900px", fontSize:"20px"}}>Back</Link>
       </h1>
-      
+      <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0' }}>
+        <button onClick={handleRefresh} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+          Refresh Analytics
+        </button>
+      </div>
 
       <div style={{ display: "flex", justifyContent: "space-between", gap: "20px" }}>
         {/* Line Chart */}
