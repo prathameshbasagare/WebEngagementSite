@@ -178,9 +178,7 @@ app.post('/signin', async (req, res) => {
   app.get('/analytics', async (req, res) => {
     
     // const companyName = req.query.companyName;
-    const { userId } = req.query; 
-
-    console.log(userId);
+    const { userId } = req.query; // Currently Company name is being passed as userId
     try {
         const foundCompany = await Company.findOne({ companyname: userId });
         if (foundCompany) {
