@@ -154,6 +154,25 @@
     top: 10px;
   }
   
+  .logout-btn {
+    background: transparent;
+    font-weight: 600;
+    font-size: 18px;
+    border-radius: 5px;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    box-shadow: none;
+    border: none;
+    outline: none;
+    padding: 9px 15px;
+    color: #fff;
+    transition: background 0.2s;
+  }
+  .logout-btn:hover {
+    background: #15803d; /* Tailwind's green-700 */
+    color: #fff;
+  }
+  
   @media screen and (max-width: 970px) {
     .navbar .wrapper .btn{
       display: block;
@@ -316,4 +335,3 @@
     font-size: 45px;
     font-weight: 600;
   }
-  

@@ -4,6 +4,7 @@ import { Line, Bar, Pie } from "react-chartjs-2";
 import randomColor from "randomcolor";
 import { Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
+import NavBar from '../components/navbar';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -258,6 +259,7 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
 
   return (
     <div>
+      <NavBar />
       <h1
         style={{
           backgroundColor: "lightgreen",

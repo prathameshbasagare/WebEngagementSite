@@ -2,6 +2,7 @@ import React, { useEffect, useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, Navigate, useNavigate } from 'react-router-dom';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import { AuthContext } from '../context/AuthContext';
+import NavBar from '../components/navbar';
 
 const Dashboard = ({ analyticsData, setAnalyticsData }) => {
     const navigate = useNavigate();
@@ -41,19 +42,7 @@ const Dashboard = ({ analyticsData, setAnalyticsData }) => {
 
     return (
         <div style={styles.dashboardContainer}>
-            <header style={styles.navbar}>
-                <h1 className='text-white text-bold' style={{fontSize:"25px"}}>Dashboard</h1>
-                <nav>
-                    <ul style={styles.navLinks}>
-                        <li><Link to="/settings" className='py-2 px-4 rounded hover:bg-green-700 hover:rounded-full transition' style={styles.link}>Settings</Link></li>
-                        <li>
-                            <button onClick={handleLogout} style={styles.logoutButton}>
-                                Logout
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
-            </header>
+            <NavBar />
             <main className="bg-white" style={styles.mainContent}>
                 <Routes>
                     <Route path="/" element={<Home />} />
@@ -74,6 +63,7 @@ const Home = () => {
                 display: "flex",
                 flexDirection: "column",
                 margin: "1.5rem 0",
+                marginTop: "10rem",
                 backgroundColor: "rgba(255, 255, 255, 0.8)",
                 backdropFilter: "blur(10px)",
                 WebkitBackdropFilter: "blur(10px)",
@@ -257,36 +247,6 @@ const styles = {
     dashboardContainer: {
         fontFamily: 'Arial, sans-serif',
         color: '#333',
-    },
-    navbar: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '10px 20px',
-        backgroundColor: '#4CAF50',
-        color: '#fff',
-    },
-    title: {
-        margin: 0,
-    },
-    navLinks: {
-        listStyleType: 'none',
-        display: 'flex',
-        gap: '15px',
-        padding: 0,
-        margin: 0,
-    },
-    link: {
-        color: '#fff',
-        textDecoration: 'none',
-        fontWeight: 'bold',
-    },
-    logoutButton: {
-        backgroundColor: 'transparent',
-        color: '#fff',
-        border: 'none',
-        cursor: 'pointer',
-        fontWeight: 'bold',
     },
     mainContent: {
         padding: '20px',
