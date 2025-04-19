@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
+import ProtectedAuthRoute from './components/ProtectedAuthRoute';
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -10,7 +11,7 @@ import Dashboard from './pages/Dashboard';
 import EmailUploader from './pages/EmailUploader';
 
 const App = () => {
-  const [analyticsData, setAnalyticsData] = useState([]); // Initialize as empty array
+  const [analyticsData, setAnalyticsData] = useState([]); 
 
   return (
     <AuthProvider>
@@ -19,16 +20,39 @@ const App = () => {
           <Route path="/" element={<Home />} />
           <Route path="/email-upload" element={<EmailUploader/>}/>
           
-          {/* Login page where user will input credentials */}
-          <Route path="/login" element={<Login setAnalyticsData={setAnalyticsData} />} />
+          {/* Protected auth routes - redirect to dashboard if logged in */}
+          <Route 
+            path="/login" 
+            element={
+              <ProtectedAuthRoute>
+                <Login setAnalyticsData={setAnalyticsData} />
+              </ProtectedAuthRoute>
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              <ProtectedAuthRoute>
+                <Register />
+              </ProtectedAuthRoute>
+            } 
+          />
 
-          {/* Register page */}
-          <Route path="/register" element={<Register />} />
-          <Route path="/dashboard/*" element={<Dashboard analyticsData={analyticsData} setAnalyticsData={setAnalyticsData} />} />
-
-          {/* Conditionally render AnalyticsDashboard if analyticsData exists */}
-          <Route path="/analytics-dashboard" element={<AnalyticsDashboard analyticsData={analyticsData} />} />
-          
+          <Route 
+            path="/dashboard/*" 
+            element={
+              <Dashboard 
+                analyticsData={analyticsData} 
+                setAnalyticsData={setAnalyticsData} 
+              />
+            } 
+          />
+          <Route 
+            path="/analytics-dashboard" 
+            element={
+              <AnalyticsDashboard analyticsData={analyticsData} />
+            } 
+          />
         </Routes>
       </Router>
     </AuthProvider>
