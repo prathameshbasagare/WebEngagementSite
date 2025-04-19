@@ -10,11 +10,11 @@ import Dashboard from './pages/Dashboard';
 import EmailUploader from './pages/EmailUploader';
 
 const App = () => {
-  const [analyticsData, setAnalyticsData] = useState(null);
+  const [analyticsData, setAnalyticsData] = useState([]); // Initialize as empty array
 
   return (
     <AuthProvider>
-      <Router>
+      <Router future={{ v7_startTransition: true }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/email-upload" element={<EmailUploader/>}/>
@@ -24,12 +24,10 @@ const App = () => {
 
           {/* Register page */}
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/*" element={<Dashboard analyticsData={analyticsData} setAnalyticsData={setAnalyticsData} />} />
 
           {/* Conditionally render AnalyticsDashboard if analyticsData exists */}
-          
-            <Route path="/analytics-dashboard" element={<AnalyticsDashboard analyticsData={analyticsData} />} />
-          
+          <Route path="/analytics-dashboard" element={<AnalyticsDashboard analyticsData={analyticsData} />} />
           
         </Routes>
       </Router>

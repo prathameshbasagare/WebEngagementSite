@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Line, Bar, Pie } from "react-chartjs-2";
 import randomColor from "randomcolor";
-import {Link} from 'react-router-dom';
+import { Link } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -28,33 +29,51 @@ ChartJS.register(
   ArcElement
 );
 
-const AnalyticsDashboard = () => {
-  const [analyticsData, setAnalyticsData] = useState([]);
+const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
   const navigate = useNavigate();
+  const { user } = useContext(AuthContext);
+  const [analyticsData, setAnalyticsData] = useState(analyticsDataProp || []);
+  const [loading, setLoading] = useState(false);
 
+  // Fetch analytics if empty (e.g. on direct reload)
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
-    if (!token) {
-      navigate("/login");
-      return;
+    if ((!analyticsDataProp || analyticsDataProp.length === 0) && user) {
+      setLoading(true);
+      fetch(`http://localhost:3001/analytics?userId=${user.companyname}`)
+        .then(res => res.json())
+        .then(data => {
+          setAnalyticsData(data);
+          setLoading(false);
+        })
+        .catch(() => {
+          setAnalyticsData([]);
+          setLoading(false);
+        });
+    } else if (analyticsDataProp && analyticsDataProp.length > 0) {
+      setAnalyticsData(analyticsDataProp);
     }
+  }, [analyticsDataProp, user]);
 
-    // Retrieve analytics data from localStorage
-    const storedData = localStorage.getItem("analyticsData");
-    if (storedData) {
-      const parsedData = JSON.parse(storedData);
-      setAnalyticsData(parsedData);
-    } else {
-      // If no data, populate with mock data and save to localStorage
-      const mockData = [
-        { timestamp: Date.now(), counter: 10, actionType: "click" },
-        { timestamp: Date.now() + 1000, counter: 15, actionType: "view" },
-        { timestamp: Date.now() + 2000, counter: 5, actionType: "submit" },
-      ];
-      localStorage.setItem("analyticsData", JSON.stringify(mockData));
-      setAnalyticsData(mockData);
-    }
-  }, [navigate]);
+  // Poll for updates every 10 seconds for live updates
+  useEffect(() => {
+    if (!user) return;
+    const fetchAnalytics = () => {
+      fetch(`http://localhost:3001/analytics?userId=${user.companyname}`)
+        .then(res => res.json())
+        .then(data => setAnalyticsData(data))
+        .catch(() => setAnalyticsData([]));
+    };
+    const interval = setInterval(fetchAnalytics, 1000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center bg-green-500 ">
+        <p className="text-4xl">Loading analytics...</p>
+      </div>
+    );
+  }
 
   if (!analyticsData || analyticsData.length === 0) {
     return (

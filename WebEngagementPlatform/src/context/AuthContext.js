@@ -1,27 +1,38 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 
-// Create AuthContext
 const AuthContext = createContext();
 
-// Provide AuthContext to components
 const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState(() => {
+    const storedUser = localStorage.getItem('user');
+    return storedUser ? JSON.parse(storedUser) : null;
+  });
+  const [token, setToken] = useState(() => localStorage.getItem('authToken'));
+  const [loading, setLoading] = useState(true);
 
-  const login = (userData) => {
-    setUser(userData); // Simulate user login
+  useEffect(() => {
+    setLoading(false);
+  }, []);
+
+  const login = (tokenValue, userObj) => {
+    setUser(userObj);
+    setToken(tokenValue);
+    localStorage.setItem('authToken', tokenValue);
+    localStorage.setItem('user', JSON.stringify(userObj));
   };
 
   const logout = () => {
-    setUser(null); // Simulate user logout
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{ user, token, login, logout, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-
-// Correct export
 export { AuthProvider, AuthContext };

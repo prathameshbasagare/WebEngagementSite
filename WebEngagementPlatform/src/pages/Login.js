@@ -13,7 +13,7 @@ const Login = ({ setAnalyticsData }) => {
   useEffect(() => {
     document.body.className = "login-body";
     return () => {
-      document.body.className = ""; 
+      document.body.className = "";
     };
   }, []);
 
@@ -30,9 +30,6 @@ const Login = ({ setAnalyticsData }) => {
       if (response.ok) {
         const data = await response.json();
         login(data.token, data.user);
-        localStorage.setItem('authToken', data.token);
-        // const token = localStorage.getItem('authToken');
-        // console.log(token);
         const analyticsResponse = await fetch(
           `http://localhost:3001/analytics?userId=${data.user.companyname}`
         );
@@ -40,7 +37,6 @@ const Login = ({ setAnalyticsData }) => {
         if (analyticsResponse.ok) {
           const analyticsData = await analyticsResponse.json();
           setAnalyticsData(analyticsData);
-          localStorage.setItem("analyticsData", JSON.stringify(analyticsData));
           navigate("/dashboard");
         } else {
           const errorData = await analyticsResponse.json();
