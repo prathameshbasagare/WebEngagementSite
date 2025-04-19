@@ -1,6 +1,6 @@
 window.onload = () => {
   //Here we will add user id for perticular user
-    const sdk = new EngagementSDK("rajat");
+    const sdk = new EngagementSDK("abcd");
 
     // Track page view when the page loads
     sdk.trackPageView();

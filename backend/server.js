@@ -38,10 +38,60 @@ const formatDatatoSend = (user) => {
         email: user.email,
     };
 };
+const getAnalytics = async (req, res) => {
+    try {
+        const actionsByType = await Action.aggregate([
+            { $group: { _id: "$actionType", count: { $sum: 1 } } },
+        ]);
+
+        const actionsOverTime = await Action.aggregate([
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m-%d", date: "$timestamp" } },
+                    count: { $sum: 1 },
+                },
+            },
+            { $sort: { _id: 1 } },
+        ]);
+
+        const mostActivePages = await Action.aggregate([
+            { $group: { _id: "$pageUrl", count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+        ]);
+
+        res.status(200).json({ actionsByType, actionsOverTime, mostActivePages });
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching analytics", error });
+    }
+};
+app.post('/track-event', async (req, res) => {
+    console.log(req.body)
+    const { actionType,companyID, pageUrl, metadata } = req.body;
+
+    try {
+        const existingAction = await Action.findOne({ actionType, pageUrl });
+        const existingCompany = await Company.findOne({companyname : companyID.toLowerCase()});
+        
+        if (existingAction && existingCompany) {
+            existingAction.counter += 1;
+            existingAction.timestamp = new Date();
+            await existingAction.save();
+            res.status(200).json({ message: 'Action updated successfully', action: existingAction });
+        } else if(existingCompany) {
+            const newAction = new Action({  actionType,companyID, pageUrl, metadata, counter: 1, timestamp: new Date() });
+            await newAction.save();
+            res.status(201).json({ message: 'Action created successfully', action: newAction });
+        }else{
+            res.status(500).json({ message: 'Please Sign up first on Our Portal' });
+        }
+    } catch (error) {
+        console.error('Error tracking action:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
 
 app.post('/signup', async (req, res) => {
-    console.log("Hi there!")
-    const {  email, password, companyname } = req.body; // Add companyname here
+    const { name, email, password, companyname } = req.body; // Add companyname here
 
     // Validate companyname
     if (!companyname) {
@@ -49,9 +99,9 @@ app.post('/signup', async (req, res) => {
     }
 
     // Validate name
-    // if (!name) {
-    //     return res.status(400).json({ error: 'Name is required' });
-    // }
+    if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+    }
 
     // Validate email
     if (!email) {
@@ -75,7 +125,7 @@ app.post('/signup', async (req, res) => {
 
         // Create user with companyname
         const user = new Company({
-            
+            name,
             email,
             password: hashed_password,
             companyname // Make sure this field is included
@@ -174,6 +224,6 @@ app.get("/", (req, res)=>{
     res.send("Hi, this is root page");
 })
 
-app.listen(3001, () => {
+app.listen(port, () => {
     console.log(`Server is running on http://localhost:${port}`);
 });
