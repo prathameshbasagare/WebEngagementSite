@@ -351,39 +351,39 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
         Analytics Dashboard
         <Link  to="/dashboard" style={{marginLeft:"900px", fontSize:"20px"}}>Back</Link>
       </h1>
-      {/* Date Range Picker */}
-      <div className="analytics-datepicker" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px' }}>
-        <div>
-          <label>Start Date: </label>
-          <input
-            type="date"
-            value={startDate}
-            max={todayStr}
-            onChange={e => {
-              let val = e.target.value;
-              if (val > todayStr) val = todayStr;
-              setStartDate(val);
-              if (val > endDate) setEndDate(val); // keep range valid
-            }}
-          />
+      {/* Date Range Picker and Refresh Button aligned */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', marginTop: '30px', gap: '20px' }}>
+        <div className="analytics-datepicker" style={{ display: 'flex', gap: '20px', marginTop: '0px' }}>
+          <div>
+            <label>Start Date: </label>
+            <input
+              type="date"
+              value={startDate}
+              max={todayStr}
+              onChange={e => {
+                let val = e.target.value;
+                if (val > todayStr) val = todayStr;
+                setStartDate(val);
+                if (val > endDate) setEndDate(val); // keep range valid
+              }}
+            />
+          </div>
+          <div>
+            <label>End Date: </label>
+            <input
+              type="date"
+              value={endDate}
+              min={startDate}
+              max={todayStr}
+              onChange={e => {
+                let val = e.target.value;
+                if (val > todayStr) val = todayStr;
+                setEndDate(val);
+              }}
+            />
+          </div>
         </div>
-        <div>
-          <label>End Date: </label>
-          <input
-            type="date"
-            value={endDate}
-            min={startDate}
-            max={todayStr}
-            onChange={e => {
-              let val = e.target.value;
-              if (val > todayStr) val = todayStr;
-              setEndDate(val);
-            }}
-          />
-        </div>
-      </div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0' }}>
-        <button onClick={handleRefresh} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
+        <button onClick={handleRefresh} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', marginTop: '0px' }}>
           Refresh Analytics
         </button>
       </div>
