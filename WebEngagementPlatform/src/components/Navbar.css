@@ -6,10 +6,12 @@
   font-family: 'Poppins', sans-serif;
 } */
 .navbar nav{
-    position: auto;
-    z-index: 99;
     width: 100%;
     background: #242526;
+    position: 'fixed';
+    top: 0;
+    left: 0;
+    z-index: 100;
   }
   
   .navbar nav .wrapper{

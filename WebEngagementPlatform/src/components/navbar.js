@@ -56,49 +56,55 @@ const NavBar = () => {
   }
 
   return (
-    <nav className="fixed z-50 w-full bg-green-500">
-      <div className="container relative flex flex-wrap items-center justify-between p-8 mx-auto lg:justify-between xl:px-1 ">
-        {/* Logo */}
-        <Link to="/" className="left-0 text-white text-2xl font-semibold ">WebEngage</Link>
-        {/* Nav Links */}
-        <ul className="hidden md:flex space-x-6 ml-auto items-center">
-          {navLinks.map((link, idx) => (
-            <li key={idx}>
-              {link.onClick ? (
-                <button
-                  onClick={link.onClick}
-                  className="logout-btn"
-                >
-                  {link.label}
-                </button>
-              ) : (
-                <Link to={link.to} className="text-white text-lg font-medium py-2 px-4 rounded hover:bg-green-700 transition" style={{ padding: '9px 15px', fontWeight: 500, fontSize: '18px', borderRadius: '5px' }}>{link.label}</Link>
-              )}
-            </li>
-          ))}
-        </ul>
-        {/* Mobile Menu Button */}
-        <button className="md:hidden text-white text-2xl" onClick={toggleMobileMenu}>
-          <i className="fas fa-bars"></i>
-        </button>
-      </div>
-      {/* Mobile Menu Overlay */}
-      <div className={`fixed inset-0 bg-gray-900 bg-opacity-50 ${isMobileMenuOpen ? 'block' : 'hidden'}`} onClick={toggleMobileMenu}></div>
-      {/* Mobile Menu */}
-      <div className={`fixed inset-0 bg-gray-900 bg-opacity-50 ${isMobileMenuOpen ? 'block' : 'hidden'}`} id="mobile-menu">
-        <div className="w-64 bg-gray-900 p-6 flex flex-col space-y-4">
-          {navLinks.map((link, idx) => (
-            <div key={idx}>
-              {link.onClick ? (
-                <button onClick={() => { link.onClick(); toggleMobileMenu(); }} className="text-white text-xl font-medium w-full text-left">{link.label}</button>
-              ) : (
-                <Link to={link.to} className="text-white text-xl font-medium" onClick={toggleMobileMenu}>{link.label}</Link>
-              )}
-            </div>
-          ))}
+    <>
+      <nav style={{
+       
+      }} className="fixed z-50 w-full bg-green-500">
+        <div className="container relative flex flex-wrap items-center justify-between p-8 mx-auto lg:justify-between xl:px-1 ">
+          {/* Logo */}
+          <Link to="/" className="left-0 text-white text-2xl font-semibold ">WebEngage</Link>
+          {/* Nav Links */}
+          <ul className="hidden md:flex space-x-6 ml-auto items-center">
+            {navLinks.map((link, idx) => (
+              <li key={idx}>
+                {link.onClick ? (
+                  <button
+                    onClick={link.onClick}
+                    className="logout-btn"
+                  >
+                    {link.label}
+                  </button>
+                ) : (
+                  <Link to={link.to} className="text-white text-lg font-medium py-2 px-4 rounded hover:bg-green-700 transition" style={{ padding: '9px 15px', fontWeight: 500, fontSize: '18px', borderRadius: '5px' }}>{link.label}</Link>
+                )}
+              </li>
+            ))}
+          </ul>
+          {/* Mobile Menu Button */}
+          <button className="md:hidden text-white text-2xl" onClick={toggleMobileMenu}>
+            <i className="fas fa-bars"></i>
+          </button>
         </div>
-      </div>
-    </nav>
+        {/* Mobile Menu Overlay */}
+        <div className={`fixed inset-0 bg-gray-900 bg-opacity-50 ${isMobileMenuOpen ? 'block' : 'hidden'}`} onClick={toggleMobileMenu}></div>
+        {/* Mobile Menu */}
+        <div className={`fixed inset-0 bg-gray-900 bg-opacity-50 ${isMobileMenuOpen ? 'block' : 'hidden'}`} id="mobile-menu">
+          <div className="w-64 bg-gray-900 p-6 flex flex-col space-y-4">
+            {navLinks.map((link, idx) => (
+              <div key={idx}>
+                {link.onClick ? (
+                  <button onClick={() => { link.onClick(); toggleMobileMenu(); }} className="text-white text-xl font-medium w-full text-left">{link.label}</button>
+                ) : (
+                  <Link to={link.to} className="text-white text-xl font-medium" onClick={toggleMobileMenu}>{link.label}</Link>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </nav>
+      {/* Spacer to push content below navbar */}
+      <div style={{ height: 60 }} />
+    </>
   );
 };
 

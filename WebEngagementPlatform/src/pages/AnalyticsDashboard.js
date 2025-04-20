@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Line, Bar, Pie } from "react-chartjs-2";
 import randomColor from "randomcolor";
@@ -35,6 +35,28 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
   const { user } = useContext(AuthContext);
   const [analyticsData, setAnalyticsData] = useState(analyticsDataProp || []);
   const [loading, setLoading] = useState(false);
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
+  const pollingRef = useRef();
+
+  // Get today's date in yyyy-mm-dd format
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+
+  // Helper to check if a date string is today
+  const isToday = (dateStr) => dateStr === todayStr;
+
+  // Set default range to last 7 days
+  useEffect(() => {
+    if (!startDate || !endDate) {
+      const d = new Date();
+      const end = d.toISOString().split("T")[0];
+      d.setDate(d.getDate() - 6);
+      const start = d.toISOString().split("T")[0];
+      setStartDate(start);
+      setEndDate(end);
+    }
+  }, []);
 
   // Fetch analytics if empty (e.g. on direct reload)
   useEffect(() => {
@@ -55,18 +77,19 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
     }
   }, [analyticsDataProp, user]);
 
-  // Poll for updates every 5 seconds for live updates
+  // Poll for updates every 5 seconds for live updates (only if range includes today)
   useEffect(() => {
     if (!user) return;
+    if (!endDate || !isToday(endDate)) return; // Only poll if endDate is today
     const fetchAnalytics = () => {
       fetch(`http://localhost:3001/analytics?userId=${user.companyname}`)
         .then(res => res.json())
         .then(data => setAnalyticsData(data))
         .catch(() => setAnalyticsData([]));
     };
-    const interval = setInterval(fetchAnalytics, 5000); // 5 seconds
-    return () => clearInterval(interval);
-  }, [user]);
+    pollingRef.current = setInterval(fetchAnalytics, 5000);
+    return () => clearInterval(pollingRef.current);
+  }, [user, endDate]);
 
   // Add manual refresh button
   const handleRefresh = () => {
@@ -84,6 +107,13 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
       });
   };
 
+  // Filter analyticsData by selected date range
+  const filteredAnalyticsData = analyticsData.filter(item => {
+    const itemDate = new Date(item.timestamp);
+    const itemDateStr = itemDate.toISOString().split("T")[0];
+    return itemDateStr >= startDate && itemDateStr <= endDate;
+  });
+
   if (loading) {
     return (
       <div className="flex justify-center items-center bg-green-500 ">
@@ -92,20 +122,45 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
     );
   }
 
-  if (!analyticsData || analyticsData.length === 0) {
+  if (!filteredAnalyticsData || filteredAnalyticsData.length === 0) {
     return (
       <div className="flex justify-center items-center bg-green-500 ">
-        <p className="text-4xl">No data to show</p>
+        <p className="text-4xl">No data to show for selected range</p>
       </div>
     );
   }
 
-  // Sort analyticsData by timestamp ascending for consistent time order
-  const sortedAnalyticsData = [...analyticsData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+  // Sort and group analytics data by date or time
+  const sortedAnalyticsData = [...filteredAnalyticsData].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
 
-  // Use original analyticsData, labels, and lineOptions
-  const labels = analyticsData.map((item) => new Date(item.timestamp).toLocaleTimeString());
-  const counters = analyticsData.map((item) => item.counter);
+  // Determine if single day or multiple days
+  const isSingleDay = startDate === endDate;
+
+  // Group data for line chart
+  let labels = [];
+  let counters = [];
+  if (isSingleDay) {
+    // Group by hour:minute for the single day
+    const groupedByTime = sortedAnalyticsData.reduce((acc, item) => {
+      const d = new Date(item.timestamp);
+      const time = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      if (!acc[time]) acc[time] = 0;
+      acc[time] += item.counter;
+      return acc;
+    }, {});
+    labels = Object.keys(groupedByTime);
+    counters = Object.values(groupedByTime);
+  } else {
+    // Group by date for multiple days
+    const groupedByDate = sortedAnalyticsData.reduce((acc, item) => {
+      const date = new Date(item.timestamp).toLocaleDateString();
+      if (!acc[date]) acc[date] = 0;
+      acc[date] += item.counter;
+      return acc;
+    }, {});
+    labels = Object.keys(groupedByDate);
+    counters = Object.values(groupedByDate);
+  }
 
   const actionTypes = sortedAnalyticsData.map((item) => item.actionType);
   
@@ -182,6 +237,7 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
         data: counters,
         borderColor: "rgba(75, 192, 192, 1)",
         fill: false,
+        tension: 0.3 // Makes the line slightly curved
       },
     ],
   };
@@ -193,12 +249,25 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
     plugins: {
       legend: { display: true, position: 'top' },
       title: { display: true, text: 'Action Count Over Time', font: { size: 20 } },
-      tooltip: { enabled: true, mode: 'index', intersect: false }
+      tooltip: { 
+        enabled: true, 
+        mode: 'index', 
+        intersect: false,
+        callbacks: {
+          title: (context) => context[0].label,
+          label: (context) => `Actions: ${context.parsed.y}`
+        }
+      }
     },
     scales: {
       x: {
-        title: { display: true, text: 'Time', font: { size: 16 } },
-        ticks: { autoSkip: true, maxTicksLimit: 20 }
+        title: { display: true, text: isSingleDay ? 'Time' : 'Date', font: { size: 16 } },
+        ticks: { 
+          autoSkip: true, 
+          maxTicksLimit: 10,
+          maxRotation: 45,
+          minRotation: 45
+        }
       },
       y: {
         beginAtZero: true,
@@ -260,6 +329,8 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
   return (
     <div>
       <NavBar />
+      {/* Spacer to push content below navbar */}
+      <div className="navbar-spacer" />
       <h1
         style={{
           backgroundColor: "lightgreen",
@@ -280,6 +351,37 @@ const AnalyticsDashboard = ({ analyticsData: analyticsDataProp }) => {
         Analytics Dashboard
         <Link  to="/dashboard" style={{marginLeft:"900px", fontSize:"20px"}}>Back</Link>
       </h1>
+      {/* Date Range Picker */}
+      <div className="analytics-datepicker" style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginBottom: '20px' }}>
+        <div>
+          <label>Start Date: </label>
+          <input
+            type="date"
+            value={startDate}
+            max={todayStr}
+            onChange={e => {
+              let val = e.target.value;
+              if (val > todayStr) val = todayStr;
+              setStartDate(val);
+              if (val > endDate) setEndDate(val); // keep range valid
+            }}
+          />
+        </div>
+        <div>
+          <label>End Date: </label>
+          <input
+            type="date"
+            value={endDate}
+            min={startDate}
+            max={todayStr}
+            onChange={e => {
+              let val = e.target.value;
+              if (val > todayStr) val = todayStr;
+              setEndDate(val);
+            }}
+          />
+        </div>
+      </div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px 0' }}>
         <button onClick={handleRefresh} style={{ padding: '8px 16px', background: '#4CAF50', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
           Refresh Analytics
